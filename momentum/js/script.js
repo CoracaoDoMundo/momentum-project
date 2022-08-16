@@ -5,6 +5,11 @@ const date = document.querySelector(".date");
 const greeting = document.querySelector(".greeting");
 const userName = document.querySelector(".name");
 const hours = new Date().getHours();
+const body = document.querySelector(".body");
+const sliderLeft = document.querySelector(".slide-prev");
+const sliderRight = document.querySelector(".slide-next");
+
+let randomNum;
 
 function showTime() {
   const date = new Date();
@@ -34,13 +39,13 @@ function getTimeOfDay() {
   let timeOfDay;
 
   if (hours >= 0 && hours < 6) {
-    timeOfDay = "Night";
+    timeOfDay = "night";
   } else if (hours >= 6 && hours < 12) {
-    timeOfDay = "Morning";
+    timeOfDay = "morning";
   } else if (hours >= 12 && hours < 18) {
-    timeOfDay = "Afternoon";
+    timeOfDay = "afternoon";
   } else if (hours >= 18 && hours < 24) {
-    timeOfDay = "Evening";
+    timeOfDay = "evening";
   }
   return timeOfDay;
 }
@@ -67,3 +72,51 @@ window.addEventListener("load", getLocalStorage);
 // if (thuserNameis.value == '') {userName.value = '[Enter name]';};
 
 // greetings end //
+
+// background start //
+
+function getRandomNum() {
+  randomNum = Math.ceil(Math.random() * 20);
+}
+
+getRandomNum();
+
+function setBg() {
+  let bgNum = randomNum
+    .toString()
+    .padStart(2, "0");
+  let timeOfDay = getTimeOfDay();
+
+  document.body.style.backgroundImage = `url('https://github.com/CoracaoDoMundo/momentum-backgrounds/blob/main/${timeOfDay}/${bgNum}.webp?raw=true')`;
+}
+
+setBg();
+
+// background end //
+
+// background slider start //
+
+function getSlideNext() {
+if (randomNum >= 20) {
+ randomNum = 1;
+} else {
+ randomNum++;
+}
+setBg();
+}
+
+function getSlidePrev() {
+  if (randomNum <= 1) {
+   randomNum = 20;
+  } else {
+   randomNum--;
+  }
+  setBg();
+  }
+
+
+sliderRight.addEventListener("click", getSlideNext);
+sliderLeft.addEventListener("click", getSlidePrev);
+
+
+// background slider end //
