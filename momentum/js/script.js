@@ -8,6 +8,10 @@ const hours = new Date().getHours();
 const body = document.querySelector(".body");
 const sliderLeft = document.querySelector(".slide-prev");
 const sliderRight = document.querySelector(".slide-next");
+const weatherIcon = document.querySelector(".weather-icon");
+const temperature = document.querySelector(".temperature");
+const weatherDescription = document.querySelector(".weather-description");
+const city = document.querySelector(".city");
 
 let randomNum;
 
@@ -58,13 +62,18 @@ function showGreeting() {
 
 function setLocalStorage() {
   localStorage.setItem("name", userName.value);
+  localStorage.setItem("city", city.value);
 }
 window.addEventListener("beforeunload", setLocalStorage);
 
 function getLocalStorage() {
   if (localStorage.getItem("name")) {
     userName.value = localStorage.getItem("name");
-  }
+  };
+  
+  if (localStorage.getItem("city")) {
+    city.value = localStorage.getItem("city");
+  };
 }
 window.addEventListener("load", getLocalStorage);
 
@@ -120,3 +129,24 @@ sliderRight.addEventListener("click", getSlideNext);
 sliderLeft.addEventListener("click", getSlidePrev);
 
 // background slider end //
+
+//weather widget start //
+
+async function getWeather() {
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&lang=en&appid=57647143539481b4b87c1025aa2843b0&units=metric`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  weatherIcon.classList.add(`owf-${data.weather[0].id}`);
+  temperature.textContent = `${data.main.temp}°C`;
+  weatherDescription.textContent = data.weather[0].description;
+
+  console.log(data.weather[0].id, data.weather[0].description, data.main.temp);
+}
+getWeather();
+
+city.onChange("change", getWeather());
+
+// `https://api.openweathermap.org/data/2.5/weather?q=${City}&lang=en&appid=57647143539481b4b87c1025aa2843b0&units=imperial`;
+
+//weather widget end //
