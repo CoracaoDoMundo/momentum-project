@@ -82,12 +82,14 @@ function getRandomNum() {
 getRandomNum();
 
 function setBg() {
-  let bgNum = randomNum
-    .toString()
-    .padStart(2, "0");
+  let bgNum = randomNum.toString().padStart(2, "0");
   let timeOfDay = getTimeOfDay();
+  const img = new Image();
 
-  document.body.style.backgroundImage = `url('https://github.com/CoracaoDoMundo/momentum-backgrounds/blob/main/${timeOfDay}/${bgNum}.webp?raw=true')`;
+  img.src = `https://github.com/CoracaoDoMundo/momentum-backgrounds/blob/main/${timeOfDay}/${bgNum}.webp?raw=true`;
+  img.onload = () => {
+    document.body.style.backgroundImage = `url(${img.src})`;
+  };
 }
 
 setBg();
@@ -97,26 +99,24 @@ setBg();
 // background slider start //
 
 function getSlideNext() {
-if (randomNum >= 20) {
- randomNum = 1;
-} else {
- randomNum++;
-}
-setBg();
+  if (randomNum >= 20) {
+    randomNum = 1;
+  } else {
+    randomNum++;
+  }
+  setBg();
 }
 
 function getSlidePrev() {
   if (randomNum <= 1) {
-   randomNum = 20;
+    randomNum = 20;
   } else {
-   randomNum--;
+    randomNum--;
   }
   setBg();
-  }
-
+}
 
 sliderRight.addEventListener("click", getSlideNext);
 sliderLeft.addEventListener("click", getSlidePrev);
-
 
 // background slider end //
