@@ -13,6 +13,7 @@ const temperature = document.querySelector(".temperature");
 const weatherDescription = document.querySelector(".weather-description");
 const wind = document.querySelector(".wind-speed");
 const humidity = document.querySelector(".humidity");
+const weatherError = document.querySelector(".weather-error");
 const city = document.querySelector(".city");
 
 let randomNum;
@@ -139,22 +140,31 @@ async function getWeather() {
   const res = await fetch(url);
   const data = await res.json();
 
-  weatherIcon.className = 'weather-icon owf';
-  weatherIcon.classList.add(`owf-${data.weather[0].id}`);
-  temperature.textContent = `${Math.round(data.main.temp)}°C`;
-  weatherDescription.textContent = data.weather[0].description;
-  wind.textContent = `wind speed: ${data.wind.speed} m/s`;
-  humidity.textContent = `humidity: ${data.main.humidity} %`;
+  city.value = "Houston";
 
-  console.log(data.weather[0].id, data.weather[0].description, data.main.temp);
+  try {
+    weatherIcon.className = "weather-icon owf";
+    weatherIcon.classList.add(`owf-${data.weather[0].id}`);
+    weatherError.textContent = null;
+    temperature.textContent = `${Math.round(data.main.temp)}°C`;
+    weatherDescription.textContent = data.weather[0].description;
+    wind.textContent = `wind speed: ${data.wind.speed} m/s`;
+    humidity.textContent = `humidity: ${data.main.humidity} %`;
+  } catch {
+    weatherError.textContent = `City is not found! \n Please, try again.`;
+    weatherIcon.className = null;
+    temperature.textContent = null;
+    weatherDescription.textContent = null;
+    wind.textContent = null;
+    humidity.textContent = null;
+  }
 }
-getWeather();
+// getWeather();
 
 city.addEventListener("blur", getWeather);
-city.addEventListener("keypress", function (
-  e) {
+city.addEventListener("keypress", function (e) {
   if (e.key === "Enter") {
-    getWeather()
+    getWeather();
   }
 });
 
