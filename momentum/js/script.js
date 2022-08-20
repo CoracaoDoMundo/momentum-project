@@ -18,6 +18,7 @@ const city = document.querySelector(".city");
 
 let randomNum;
 
+
 function showTime() {
   const date = new Date();
   const currentTime = date.toLocaleTimeString();
@@ -30,10 +31,11 @@ function showTime() {
 showTime();
 
 function showDate() {
-  const currentDate = new Date().toLocaleDateString("en-us", {
+  const currentDate = new Date().toLocaleDateString("en-us",  {
     weekday: "long",
     month: "long",
     day: "numeric",
+    hourCycle: "h23",
   });
   date.textContent = currentDate;
 }
@@ -61,6 +63,15 @@ function showGreeting() {
   const timeOfDay = getTimeOfDay();
   const greetingText = `Good ${timeOfDay}, `;
   greeting.textContent = greetingText;
+
+  // greetingText.onfocus =
+  // if (greetingText.value == '[Enter name]') {
+  //   greetingText.value = '';};
+
+  // greetengText.onblur= 
+  // if (greetingText.value == '') {
+  //   greetingText.value = '[Enter name]';
+  // }
 }
 
 function setLocalStorage() {
