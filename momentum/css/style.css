@@ -248,7 +248,7 @@ body {
   flex: 1;
   padding: 10px;
   text-align: right;
-
+  margin-left: 6%;
 }
 
 .name {
@@ -323,10 +323,13 @@ body {
 
   .greeting {
     padding: 5px;
+    font-size: 73%;
+    margin-left: 10%;
   }
 
   .name {
-    font-size: 32px;
+    font-size: 73%;
     padding: 5px;
+    margin-right: 0px;
   }
 }
