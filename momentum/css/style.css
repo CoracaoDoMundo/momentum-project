@@ -262,24 +262,23 @@ body {
   font-family: 'Montserrat', sans-serif;
   border: 0;
   outline: 0;
-  /* opacity: .4; */
 }
 
-/* .name:disabled {
-  .name[readonly] { 
+.name::placeholder {
   color: #fff;
-  opacity: 1;
+  opacity: .5;
 }
 
 .name:focus {
   color: #fff;
-
-} */
-
-.name::placeholder {
-  color: #fff;
-  opacity: .4;
 }
+
+.name:disabled,
+.name[readonly] {
+  color: #fff;
+  opacity: 1;
+}
+
 
 .footer {
   display: flex;
