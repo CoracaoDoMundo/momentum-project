@@ -1,3 +1,5 @@
+import playList from "./playList.js";
+
 const time = document.querySelector(".time"),
   date = document.querySelector(".date"),
   greeting = document.querySelector(".greeting"),
@@ -15,11 +17,18 @@ const time = document.querySelector(".time"),
   city = document.querySelector(".city"),
   quote = document.querySelector(".quote"),
   author = document.querySelector(".author"),
-  quoteBtn = document.querySelector(".change-quote");
+  quoteBtn = document.querySelector(".change-quote"),
+  audio = document.querySelector(".audio"),
+  playBtn = document.querySelector(".play"),
+  prevBtn = document.querySelector(".play-prev"),
+  nextBtn = document.querySelector(".play-next"),
+  playListContainer = document.querySelector(".play-list");
 
 city.value = "Minsk";
 
-let randomNum;
+let randomNum,
+  isPlay = false,
+  trackNum = 0;
 
 // local storage usage start //
 
@@ -197,3 +206,83 @@ getQuotes();
 quoteBtn.addEventListener("click", getQuotes);
 
 // quotes widget end //
+
+// audio player widget start //
+
+for (let el = 0; el < playList.length; el++) {
+  const li = document.createElement("li");
+  li.classList.add("play-item");
+  li.textContent = playList[el].title;
+  playListContainer.append(li);
+}
+
+let songsTitles = document.querySelectorAll(".play-item");
+
+function toggleBtn() {
+  if (!isPlay) {
+    playBtn.classList.add("pause");
+    playAudio();
+  } else {
+    playBtn.classList.remove("pause");
+    playAudio();
+  }
+}
+
+function deleteSongsItemsSelection() {
+  songsTitles.forEach((el) => {
+    el.classList.remove("item-active");
+  });
+}
+
+function startAudio() {
+  audio.src = playList[trackNum].src;
+  audio.currentTime = 0;
+  audio.play();
+  songsTitles.forEach((el, i) => {
+    if (trackNum === i) {
+      el.classList.add("item-active");
+    }
+  });
+}
+
+function playAudio() {
+  if (!isPlay) {
+    startAudio();
+    isPlay = true;
+  } else {
+    audio.pause();
+    isPlay = false;
+    deleteSongsItemsSelection();
+  }
+}
+
+function playNext() {
+  if (trackNum < playList.length - 1) {
+    trackNum++;
+  } else if (trackNum === playList.length - 1) {
+    trackNum = 0;
+  } else {
+    throw alert("Error! Not correct number of track.");
+  }
+  deleteSongsItemsSelection();
+  startAudio();
+}
+
+function playPrev() {
+  if (trackNum > 0 && trackNum <= playList.length - 1) {
+    trackNum--;
+  } else if (trackNum === 0) {
+    trackNum = `${playList.length}` - 1;
+  } else {
+    throw alert("Error! Not correct number of track.");
+  }
+  deleteSongsItemsSelection();
+  startAudio();
+}
+
+playBtn.addEventListener("click", toggleBtn);
+prevBtn.addEventListener("click", playPrev);
+nextBtn.addEventListener("click", playNext);
+audio.addEventListener("ended", playNext);
+
+// audio player widget end //
