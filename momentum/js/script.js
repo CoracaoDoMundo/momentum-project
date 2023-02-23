@@ -22,7 +22,13 @@ const time = document.querySelector(".time"),
   playBtn = document.querySelector(".play"),
   prevBtn = document.querySelector(".play-prev"),
   nextBtn = document.querySelector(".play-next"),
-  playListContainer = document.querySelector(".play-list");
+  playListContainer = document.querySelector(".play-list"),
+  trackName = document.querySelector(".current-track-name"),
+  trackDuration = document.querySelector(".durationTime"),
+  soundBtn = document.querySelector(".sound-btn"),
+  volumeBar = document.querySelector(".volume-level-bar"),
+  progressBar = document.querySelector(".audio-progress-bar"),
+  currentTrackTime = document.querySelector(".currentTime");
 
 city.value = "Minsk";
 
@@ -212,19 +218,23 @@ quoteBtn.addEventListener("click", getQuotes);
 for (let el = 0; el < playList.length; el++) {
   const li = document.createElement("li");
   li.classList.add("play-item");
-  li.textContent = playList[el].title;
+  li.textContent = `${el + 1}. ${playList[el].title}`;
   playListContainer.append(li);
+  const smPlayBtn = document.createElement("div");
+  smPlayBtn.classList.add("play-pause-track-btn");
+  li.append(smPlayBtn);
 }
 
-let songsTitles = document.querySelectorAll(".play-item");
+let songsTitles = document.querySelectorAll(".play-item"),
+  playPauseSmBtns = document.querySelectorAll(".play-pause-track-btn");
 
 function toggleBtn() {
   if (!isPlay) {
     playBtn.classList.add("pause");
-    playAudio();
+    startTrack();
   } else {
     playBtn.classList.remove("pause");
-    playAudio();
+    pauseTrack();
   }
 }
 
@@ -234,29 +244,57 @@ function deleteSongsItemsSelection() {
   });
 }
 
-function startAudio() {
+function startNewTrack() {
   audio.src = playList[trackNum].src;
-  audio.currentTime = 0;
+  audio.play();
+  trackName.textContent = `${playList[trackNum].title}`;
+  trackDuration.textContent = `${playList[trackNum].duration}`;
+  songsTitles.forEach((el, i) => {
+    if (trackNum === i) {
+      el.classList.add("item-active");
+    }
+    measureProgressBar();
+  });
+  playPauseSmBtns.forEach((el, i) => {
+    if (trackNum === i) {
+      el.style.opacity = "1";
+    }
+  });
+}
+
+function startTrack() {
+  if (trackName.textContent === "") {
+    audio.src = playList[trackNum].src;
+    trackName.textContent = `${playList[trackNum].title}`;
+    trackDuration.textContent = `${playList[trackNum].duration}`;
+  }
+  isPlay = true;
   audio.play();
   songsTitles.forEach((el, i) => {
     if (trackNum === i) {
       el.classList.add("item-active");
     }
+    measureProgressBar();
   });
+  playPauseSmBtns.forEach((el, i) => {
+    if (trackNum === i) {
+      el.style.opacity = "1";
+    }
+  });
+  playPauseSmBtns[trackNum].classList.remove("play-track-btn");
 }
 
-function playAudio() {
-  if (!isPlay) {
-    startAudio();
-    isPlay = true;
-  } else {
-    audio.pause();
-    isPlay = false;
-    deleteSongsItemsSelection();
-  }
+function pauseTrack() {
+  isPlay = false;
+  audio.pause();
+  playPauseSmBtns[trackNum].classList.add("play-track-btn");
 }
 
 function playNext() {
+  if (!playBtn.classList.contains("pause")) {
+    playBtn.classList.add("pause");
+  }
+
   if (trackNum < playList.length - 1) {
     trackNum++;
   } else if (trackNum === playList.length - 1) {
@@ -265,10 +303,17 @@ function playNext() {
     throw alert("Error! Not correct number of track.");
   }
   deleteSongsItemsSelection();
-  startAudio();
+  playPauseSmBtns.forEach((el) => {
+    el.style.opacity = "0";
+  });
+  startNewTrack();
 }
 
 function playPrev() {
+  if (!playBtn.classList.contains("pause")) {
+    playBtn.classList.add("pause");
+  }
+
   if (trackNum > 0 && trackNum <= playList.length - 1) {
     trackNum--;
   } else if (trackNum === 0) {
@@ -277,7 +322,10 @@ function playPrev() {
     throw alert("Error! Not correct number of track.");
   }
   deleteSongsItemsSelection();
-  startAudio();
+  playPauseSmBtns.forEach((el) => {
+    el.style.opacity = "0";
+  });
+  startNewTrack();
 }
 
 playBtn.addEventListener("click", toggleBtn);
@@ -286,3 +334,128 @@ nextBtn.addEventListener("click", playNext);
 audio.addEventListener("ended", playNext);
 
 // audio player widget end //
+
+// advanced audio player start //
+
+function muteSound() {
+  if (!soundBtn.classList.contains("sound-off")) {
+    soundBtn.classList.add("sound-off");
+    audio.muted = true;
+  } else {
+    soundBtn.classList.remove("sound-off");
+    audio.muted = false;
+  }
+}
+
+soundBtn.addEventListener("click", muteSound);
+
+function controlVolume() {
+  audio.volume = volumeBar.value;
+
+  volumeBar.addEventListener("input", () => {
+    volumeBar.style.background =
+      "linear-gradient(to right, rgb(197, 179, 88), rgb(197, 179, 88)" +
+      100 * volumeBar.value +
+      "%, \n#ffffff " +
+      100 * volumeBar.value +
+      "%, \n#ffffff)";
+  });
+}
+
+volumeBar.addEventListener("input", controlVolume);
+
+// Функция контроля маленькими кнопками рядом с треком:
+
+function controlSmBtns() {
+  playPauseSmBtns.forEach((el) => {
+    el.addEventListener("click", () => {
+      if (isPlay === true) {
+        el.classList.add("play-track-btn");
+        audio.pause();
+        isPlay = false;
+        playBtn.classList.remove("pause");
+      } else {
+        el.classList.remove("play-track-btn");
+        audio.play();
+        isPlay = true;
+        playBtn.classList.add("pause");
+      }
+    });
+  });
+}
+
+controlSmBtns();
+
+// Функция, чтобы начинать и останавливать проигрывание трека по клику на него, противоречит функции с маленькими кнопками, поэтому отключила, но вообще она логичнее, потом включить лучше ее.
+
+// songsTitles.forEach((el, i) => {
+//   el.addEventListener("click", () => {
+//     let x = trackNum;
+//     trackNum = i;
+//     if (!isPlay) {
+//       startNewTrack();
+//       isPlay = true;
+//       playBtn.classList.add("pause");
+//     } else {
+//       if (x === trackNum) {
+//         audio.pause();
+//         isPlay = false;
+//         trackName.textContent = "";
+//         trackDuration.textContent = "";
+//         playBtn.classList.remove("pause");
+//         deleteSongsItemsSelection();
+//       } else {
+//         deleteSongsItemsSelection();
+//         startNewTrack();
+//       }
+//     }
+//   });
+// });
+
+function measureProgressBar() {
+  let barWidth = playList[trackNum].duration.split(":");
+  let minSec = barWidth[0] * 60;
+  progressBar.max = +barWidth[1] + +minSec;
+}
+
+function updateProgressBar() {
+  if (trackName.textContent !== "") {
+    progressBar.value = audio.currentTime;
+    currentTrackTime.innerHTML = formatTimeSecToMin(
+      Math.floor(audio.currentTime)
+    );
+    colorProgressBar(progressBar);
+  }
+}
+
+function formatTimeSecToMin(seconds) {
+  let min = Math.floor(seconds / 60);
+  let sec = Math.floor(seconds - min * 60);
+  if (sec < 10) {
+    sec = `0${sec}`;
+  }
+  return `${min}:${sec}`;
+}
+
+setInterval(updateProgressBar, 1000);
+
+function colorProgressBar(theBar) {
+  let min = parseInt(theBar.value);
+  let max = parseInt(theBar.max);
+  let mult = 100 / max;
+  let val = mult * min;
+  theBar.style.background =
+    "linear-gradient(to right, rgb(197, 179, 88), rgb(197, 179, 88)" +
+    val +
+    "%, \n#ffffff " +
+    val +
+    "%, \n#ffffff)";
+}
+
+function scrollBar() {
+  audio.currentTime = progressBar.value;
+}
+
+progressBar.addEventListener("click", scrollBar);
+
+// advanced audio player end //
