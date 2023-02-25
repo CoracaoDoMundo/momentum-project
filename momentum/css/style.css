@@ -73,11 +73,18 @@ body {
   width: 20%;
 }
 
+.playlist-item {
+  display: flex;
+  align-items: center;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
 .play-item {
   position: relative;
   display: flex;
   padding: 5px;
-  margin-left: 2%;
   opacity: .8;
   cursor: pointer;
   transition: .3s;
@@ -158,7 +165,6 @@ body {
   z-index: 4;
   height: 5px;
   width: 100%;
-  /* background: #ffffff; */
   background: linear-gradient(to right, rgb(197, 179, 88), rgb(197, 179, 88) 1%, #ffffff 1%, #ffffff);
   border-radius: 30px;
 }
@@ -169,7 +175,6 @@ body {
   width: 7px;
   border: 0;
   background: rgb(197, 179, 88);
-  /* background: transparent; */
   border-radius: 30px;
   cursor: pointer;
 }
@@ -210,7 +215,7 @@ body {
   opacity: 0;
   width: 10%;
   height: 20px;
-  margin-left: 10px;
+  margin-left: 5px;
   background-size: 20px 20px;
   background-image: url("../assets/svg/pause-btn.svg");
   background-repeat: no-repeat;

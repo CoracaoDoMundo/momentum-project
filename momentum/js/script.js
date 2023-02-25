@@ -28,13 +28,22 @@ const time = document.querySelector(".time"),
   soundBtn = document.querySelector(".sound-btn"),
   volumeBar = document.querySelector(".volume-level-bar"),
   progressBar = document.querySelector(".audio-progress-bar"),
-  currentTrackTime = document.querySelector(".currentTime");
+  currentTrackTime = document.querySelector(".currentTime"),
+  greetingTranslation = {
+    en: ["Good"],
+    ru: ["Доброе", "Добрый", "Доброй"],
+  },
+  weatherTranslation = {
+    en: ["wind speed", "humidity", "m/s"],
+    ru: ["скорость ветра", "влажность", "м/с"],
+  };
 
 city.value = "Minsk";
 
 let randomNum,
   isPlay = false,
-  trackNum = 0;
+  trackNum = -1,
+  lang = greeting.getAttribute("lang");
 
 // local storage usage start //
 
@@ -72,40 +81,83 @@ function showTime() {
 showTime();
 
 function showDate() {
-  const currentDate = new Date().toLocaleDateString("en-us", {
+  let locales;
+  let options = {
     weekday: "long",
     month: "long",
     day: "numeric",
     hourCycle: "h23",
-  });
-  date.textContent = currentDate;
+  };
+  switch (lang) {
+    case "ru":
+      locales = "ru-RU";
+      break;
+    case "en":
+      locales = "en-US";
+      break;
+  }
+  const currentDate = new Date().toLocaleDateString(locales, options);
+  date.textContent = currentDate
+    .split(" ")
+    .map((el) => el.charAt(0).toUpperCase() + el.slice(1))
+    .join(" ");
 }
 
 // time and date end //
 
 // greetings start //
 
-function getTimeOfDay() {
+function getTimeOfDay(lang) {
   let timeOfDay;
 
-  if (hours >= 0 && hours < 6) {
-    timeOfDay = "night";
-  } else if (hours >= 6 && hours < 12) {
-    timeOfDay = "morning";
-  } else if (hours >= 12 && hours < 18) {
-    timeOfDay = "afternoon";
-  } else if (hours >= 18 && hours < 24) {
-    timeOfDay = "evening";
-  } else {
-    throw alert("Time is incorrect!");
+  switch (lang) {
+    case "en":
+      if (hours >= 0 && hours < 6) {
+        timeOfDay = "night";
+      } else if (hours >= 6 && hours < 12) {
+        timeOfDay = "morning";
+      } else if (hours >= 12 && hours < 18) {
+        timeOfDay = "afternoon";
+      } else if (hours >= 18 && hours < 24) {
+        timeOfDay = "evening";
+      } else {
+        throw alert("Time is incorrect!");
+      }
+      break;
+    case "ru":
+      if (hours >= 0 && hours < 6) {
+        timeOfDay = "ночи";
+      } else if (hours >= 6 && hours < 12) {
+        timeOfDay = "утро";
+      } else if (hours >= 12 && hours < 18) {
+        timeOfDay = "день";
+      } else if (hours >= 18 && hours < 24) {
+        timeOfDay = "вечер";
+      } else {
+        throw alert("Передано неправильное время!");
+      }
+      break;
   }
-
   return timeOfDay;
 }
 
 function showGreeting() {
-  const timeOfDay = getTimeOfDay();
-  const greetingText = `Good ${timeOfDay}, `;
+  const timeOfDay = getTimeOfDay(lang);
+  let greetingText;
+
+  if (lang === "en") {
+    userName.setAttribute("placeholder", "[Enter name]");
+    greetingText = `${greetingTranslation[lang]} ${timeOfDay}, `;
+  } else if (lang === "ru") {
+    userName.setAttribute("placeholder", "[Введите имя]");
+    if (timeOfDay === "день" || timeOfDay === "вечер") {
+      greetingText = `${greetingTranslation[lang][1]} ${timeOfDay}, `;
+    } else if (timeOfDay === "утро") {
+      greetingText = `${greetingTranslation[lang][0]} ${timeOfDay}, `;
+    } else if (timeOfDay === "ночи") {
+      greetingText = `${greetingTranslation[lang][2]} ${timeOfDay}, `;
+    }
+  }
   greeting.textContent = greetingText;
 }
 
@@ -124,7 +176,7 @@ function setBg() {
   }
 
   let bgNum = randomNum.toString().padStart(2, "0");
-  let timeOfDay = getTimeOfDay();
+  let timeOfDay = getTimeOfDay("en");
   const img = new Image();
 
   img.src = `https://github.com/CoracaoDoMundo/momentum-backgrounds/blob/main/${timeOfDay}/${bgNum}.webp?raw=true`;
@@ -165,7 +217,7 @@ sliderLeft.addEventListener("click", getSlidePrev);
 //weather widget start //
 
 async function getWeather() {
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&lang=en&appid=57647143539481b4b87c1025aa2843b0&units=metric`;
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city.value}&lang=${lang}&appid=57647143539481b4b87c1025aa2843b0&units=metric`;
   const res = await fetch(url);
   const data = await res.json();
 
@@ -175,8 +227,10 @@ async function getWeather() {
     weatherError.textContent = null;
     temperature.textContent = `${Math.round(data.main.temp)}°C`;
     weatherDescription.textContent = data.weather[0].description;
-    wind.textContent = `wind speed: ${Math.round(data.wind.speed)} m/s`;
-    humidity.textContent = `humidity: ${data.main.humidity} %`;
+    wind.textContent = `${weatherTranslation[lang][0]}: ${Math.round(
+      data.wind.speed
+    )} ${weatherTranslation[lang][2]}`;
+    humidity.textContent = `${weatherTranslation[lang][1]}: ${data.main.humidity} %`;
   } catch {
     weatherError.textContent = `City is not found! \n Please, try again.`;
     weatherIcon.className = null;
@@ -204,8 +258,16 @@ async function getQuotes() {
   const data = await res.json();
   let randomQuoteNum = getRandomNum(data.length);
 
-  quote.textContent = data[randomQuoteNum].text;
-  author.textContent = data[randomQuoteNum].author;
+  switch (lang) {
+    case "ru":
+      quote.textContent = data[randomQuoteNum].text_ru;
+      author.textContent = data[randomQuoteNum].author_ru;
+      break;
+    case "en":
+      quote.textContent = data[randomQuoteNum].text;
+      author.textContent = data[randomQuoteNum].author;
+      break;
+  }
 }
 getQuotes();
 
@@ -215,15 +277,29 @@ quoteBtn.addEventListener("click", getQuotes);
 
 // audio player widget start //
 
-for (let el = 0; el < playList.length; el++) {
-  const li = document.createElement("li");
-  li.classList.add("play-item");
-  li.textContent = `${el + 1}. ${playList[el].title}`;
-  playListContainer.append(li);
-  const smPlayBtn = document.createElement("div");
-  smPlayBtn.classList.add("play-pause-track-btn");
-  li.append(smPlayBtn);
+function formPlaylist() {
+  for (let el = 0; el < playList.length; el++) {
+    const li = document.createElement("li");
+    li.classList.add("playlist-item");
+    const trackNameText = document.createElement("p");
+    trackNameText.classList.add("play-item");
+    switch (lang) {
+      case "ru":
+        trackNameText.textContent = `${el + 1}. ${playList[el].title_ru}`;
+        break;
+      case "en":
+        trackNameText.textContent = `${el + 1}. ${playList[el].title}`;
+        break;
+    }
+    playListContainer.append(li);
+    li.append(trackNameText);
+    const smPlayBtn = document.createElement("div");
+    smPlayBtn.classList.add("play-pause-track-btn");
+    li.append(smPlayBtn);
+  }
 }
+
+formPlaylist();
 
 let songsTitles = document.querySelectorAll(".play-item"),
   playPauseSmBtns = document.querySelectorAll(".play-pause-track-btn");
@@ -244,10 +320,16 @@ function deleteSongsItemsSelection() {
   });
 }
 
+function deleteSmBtnsSelection() {
+  playPauseSmBtns.forEach((el) => {
+    el.style.opacity = "0";
+  });
+}
+
 function startNewTrack() {
   audio.src = playList[trackNum].src;
   audio.play();
-  trackName.textContent = `${playList[trackNum].title}`;
+  translateTrackName();
   trackDuration.textContent = `${playList[trackNum].duration}`;
   songsTitles.forEach((el, i) => {
     if (trackNum === i) {
@@ -260,12 +342,13 @@ function startNewTrack() {
       el.style.opacity = "1";
     }
   });
+  playPauseSmBtns[trackNum].classList.remove("play-track-btn");
 }
 
 function startTrack() {
   if (trackName.textContent === "") {
     audio.src = playList[trackNum].src;
-    trackName.textContent = `${playList[trackNum].title}`;
+    translateTrackName();
     trackDuration.textContent = `${playList[trackNum].duration}`;
   }
   isPlay = true;
@@ -303,9 +386,7 @@ function playNext() {
     throw alert("Error! Not correct number of track.");
   }
   deleteSongsItemsSelection();
-  playPauseSmBtns.forEach((el) => {
-    el.style.opacity = "0";
-  });
+  deleteSmBtnsSelection();
   startNewTrack();
 }
 
@@ -322,9 +403,7 @@ function playPrev() {
     throw alert("Error! Not correct number of track.");
   }
   deleteSongsItemsSelection();
-  playPauseSmBtns.forEach((el) => {
-    el.style.opacity = "0";
-  });
+  deleteSmBtnsSelection();
   startNewTrack();
 }
 
@@ -366,7 +445,7 @@ volumeBar.addEventListener("input", controlVolume);
 
 // Функция контроля маленькими кнопками рядом с треком:
 
-function controlSmBtns() {
+function controlBySmBtns() {
   playPauseSmBtns.forEach((el) => {
     el.addEventListener("click", () => {
       if (isPlay === true) {
@@ -384,33 +463,43 @@ function controlSmBtns() {
   });
 }
 
-controlSmBtns();
+controlBySmBtns();
 
-// Функция, чтобы начинать и останавливать проигрывание трека по клику на него, противоречит функции с маленькими кнопками, поэтому отключила, но вообще она логичнее, потом включить лучше ее.
+function controlByClickOnItem() {
+  songsTitles.forEach((el, i) => {
+    el.addEventListener("click", () => {
+      let x = trackNum;
+      trackNum = i;
+      console.log(x);
+      console.log(i);
+      if (!isPlay) {
+        if (x === -1) {
+          startNewTrack();
+        } else if (i === x) {
+          startTrack();
+        } else {
+          deleteSongsItemsSelection();
+          deleteSmBtnsSelection();
+          startNewTrack();
+        }
+        isPlay = true;
+        playBtn.classList.add("pause");
+      } else {
+        if (i === x) {
+          pauseTrack();
+          playBtn.classList.remove("pause");
+          isPlay = false;
+        } else {
+          deleteSongsItemsSelection();
+          deleteSmBtnsSelection();
+          startNewTrack();
+        }
+      }
+    });
+  });
+}
 
-// songsTitles.forEach((el, i) => {
-//   el.addEventListener("click", () => {
-//     let x = trackNum;
-//     trackNum = i;
-//     if (!isPlay) {
-//       startNewTrack();
-//       isPlay = true;
-//       playBtn.classList.add("pause");
-//     } else {
-//       if (x === trackNum) {
-//         audio.pause();
-//         isPlay = false;
-//         trackName.textContent = "";
-//         trackDuration.textContent = "";
-//         playBtn.classList.remove("pause");
-//         deleteSongsItemsSelection();
-//       } else {
-//         deleteSongsItemsSelection();
-//         startNewTrack();
-//       }
-//     }
-//   });
-// });
+controlByClickOnItem();
 
 function measureProgressBar() {
   let barWidth = playList[trackNum].duration.split(":");
@@ -459,3 +548,48 @@ function scrollBar() {
 progressBar.addEventListener("click", scrollBar);
 
 // advanced audio player end //
+
+// translation function start //
+
+function translateTrackName() {
+  switch (lang) {
+    case "ru":
+      trackName.textContent = `${playList[trackNum].title_ru}`;
+      break;
+    case "en":
+      trackName.textContent = `${playList[trackNum].title}`;
+      break;
+  }
+}
+
+function translatePlaylist() {
+  switch (lang) {
+    case "ru":
+      songsTitles.forEach((el, i) => {
+        el.textContent = `${i + 1}. ${playList[i].title_ru}`;
+      });
+      break;
+    case "en":
+      songsTitles.forEach((el, i) => {
+        el.textContent = `${i + 1}. ${playList[i].title}`;
+      });
+      break;
+  }
+}
+
+function translatePage() {
+  if (lang === "ru") {
+    lang = "en";
+  } else if (lang === "en") {
+    lang = "ru";
+  }
+  showGreeting();
+  getWeather(lang);
+  getQuotes();
+  translateTrackName();
+  translatePlaylist();
+}
+
+// time.addEventListener("click", translatePage);
+
+// translation function end //
