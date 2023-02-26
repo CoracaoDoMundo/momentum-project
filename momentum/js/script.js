@@ -3,11 +3,13 @@ import playList from "./playList.js";
 const time = document.querySelector(".time"),
   date = document.querySelector(".date"),
   greeting = document.querySelector(".greeting"),
+  greetingBlock = document.querySelector(".greeting-container"),
   userName = document.querySelector(".name"),
   hours = new Date().getHours(),
   body = document.querySelector(".body"),
   sliderLeft = document.querySelector(".slide-prev"),
   sliderRight = document.querySelector(".slide-next"),
+  weatherBlock = document.querySelector(".weather"),
   weatherIcon = document.querySelector(".weather-icon"),
   temperature = document.querySelector(".temperature"),
   weatherDescription = document.querySelector(".weather-description"),
@@ -18,7 +20,9 @@ const time = document.querySelector(".time"),
   quote = document.querySelector(".quote"),
   author = document.querySelector(".author"),
   quoteBtn = document.querySelector(".change-quote"),
+  quoteBlock = document.querySelector(".quote-block"),
   audio = document.querySelector(".audio"),
+  playerBlock = document.querySelector(".player"),
   playBtn = document.querySelector(".play"),
   prevBtn = document.querySelector(".play-prev"),
   nextBtn = document.querySelector(".play-next"),
@@ -29,6 +33,36 @@ const time = document.querySelector(".time"),
   volumeBar = document.querySelector(".volume-level-bar"),
   progressBar = document.querySelector(".audio-progress-bar"),
   currentTrackTime = document.querySelector(".currentTime"),
+  settingsBtn = document.querySelector(".settings-btn"),
+  settingsMenu = document.querySelector(".settings-menu"),
+  engBtn = document.getElementById("radio-en"),
+  rusBtn = document.getElementById("radio-ru"),
+  timeBtnYes = document.getElementById("radio-time-y"),
+  timeBtnNo = document.getElementById("radio-time-n"),
+  dateBtnYes = document.getElementById("radio-date-y"),
+  dateBtnNo = document.getElementById("radio-date-n"),
+  greetingBtnYes = document.getElementById("radio-greeting-y"),
+  greetingBtnNo = document.getElementById("radio-greeting-n"),
+  quoteBtnYes = document.getElementById("radio-quote-y"),
+  quoteBtnNo = document.getElementById("radio-quote-n"),
+  weatherBtnYes = document.getElementById("radio-weather-y"),
+  weatherBtnNo = document.getElementById("radio-weather-n"),
+  audioBtnYes = document.getElementById("radio-audio-y"),
+  audioBtnNo = document.getElementById("radio-audio-n"),
+  setHeader = document.querySelector(".settings-menu__header"),
+  setLang = document.querySelector(".settings-menu__lang"),
+  setEngBtn = document.querySelector(".lang-eng-btn"),
+  setRusBtn = document.querySelector(".lang-rus-btn"),
+  setSections = document.querySelector(".settings-menu__sections"),
+  setTime = document.querySelector(".set-time"),
+  setDate = document.querySelector(".set-date"),
+  setGreeting = document.querySelector(".set-greet"),
+  setquote = document.querySelector(".set-quote"),
+  setWeather = document.querySelector(".set-weather"),
+  setAudio = document.querySelector(".set-audio"),
+  setYes = document.querySelectorAll(".yes"),
+  setNo = document.querySelectorAll(".no"),
+  setBackgrnd = document.querySelector(".settings-menu__background"),
   greetingTranslation = {
     en: ["Good"],
     ru: ["Доброе", "Добрый", "Доброй"],
@@ -36,20 +70,60 @@ const time = document.querySelector(".time"),
   weatherTranslation = {
     en: ["wind speed", "humidity", "m/s"],
     ru: ["скорость ветра", "влажность", "м/с"],
+  },
+  settingsTranslation = {
+    en: [
+      "Settings",
+      "Language",
+      "En",
+      "Ru",
+      "Sections",
+      "Time",
+      "Date",
+      "Greeting",
+      "Quote",
+      "Weather",
+      "Audio",
+      "Yes",
+      "No",
+      "Background",
+    ],
+    ru: [
+      "Настройки",
+      "Язык",
+      "Англ",
+      "Рус",
+      "Разделы",
+      "Время",
+      "Дата",
+      "Приветствие",
+      "Цитата",
+      "Погода",
+      "Музыка",
+      "Да",
+      "Нет",
+      "Фон",
+    ],
   };
 
 city.value = "Minsk";
 
 let randomNum,
   isPlay = false,
-  trackNum = -1,
-  lang = greeting.getAttribute("lang");
+  trackNum = 0,
+  lang = greeting.getAttribute("lang"),
+  state = {
+    language: "en",
+    photoSource: "github",
+    blocks: ["time", "date", "greeting", "quote", "weather", "audio"],
+  };
 
 // local storage usage start //
 
 function setLocalStorage() {
   localStorage.setItem("name", userName.value);
   localStorage.setItem("city", city.value);
+  localStorage.setItem("state", JSON.stringify(state));
 }
 window.addEventListener("beforeunload", setLocalStorage);
 
@@ -61,7 +135,27 @@ function getLocalStorage() {
   if (localStorage.getItem("city")) {
     city.value = localStorage.getItem("city");
   }
+
+  if (localStorage.getItem("state")) {
+    state = JSON.parse(localStorage.getItem("state"));
+    lang = state.language;
+    translatePage();
+    hideTimeOnLoad();
+    hideDateOnLoad();
+    hideGreetingOnLoad();
+    hideWeatherOnLoad();
+    hideQuoteOnLoad();
+    hideAudioOnLoad();
+    console.log(state);
+  }
 }
+
+// function appearanceOfBlocks(element) {
+//   if (!state.blocks.includes(element)) {
+//     `${element}` + BtnNo.value = "no";
+//   }
+// }
+
 window.addEventListener("load", getLocalStorage);
 window.addEventListener("load", getWeather);
 
@@ -256,7 +350,7 @@ async function getQuotes() {
   const quotes = "js/data.json";
   const res = await fetch(quotes);
   const data = await res.json();
-  let randomQuoteNum = getRandomNum(data.length);
+  let randomQuoteNum = getRandomNum(data.length - 1);
 
   switch (lang) {
     case "ru":
@@ -308,6 +402,7 @@ function toggleBtn() {
   if (!isPlay) {
     playBtn.classList.add("pause");
     startTrack();
+    console.log(trackNum);
   } else {
     playBtn.classList.remove("pause");
     pauseTrack();
@@ -346,7 +441,7 @@ function startNewTrack() {
 }
 
 function startTrack() {
-  if (trackName.textContent === "") {
+  if (trackDuration.textContent === "") {
     audio.src = playList[trackNum].src;
     translateTrackName();
     trackDuration.textContent = `${playList[trackNum].duration}`;
@@ -470,8 +565,6 @@ function controlByClickOnItem() {
     el.addEventListener("click", () => {
       let x = trackNum;
       trackNum = i;
-      console.log(x);
-      console.log(i);
       if (!isPlay) {
         if (x === -1) {
           startNewTrack();
@@ -577,19 +670,276 @@ function translatePlaylist() {
   }
 }
 
+function translateSettings() {
+  setHeader.textContent = settingsTranslation[lang][0];
+  setLang.textContent = settingsTranslation[lang][1];
+  setEngBtn.textContent = settingsTranslation[lang][2];
+  setRusBtn.textContent = settingsTranslation[lang][3];
+  setSections.textContent = settingsTranslation[lang][4];
+  setTime.textContent = settingsTranslation[lang][5];
+  setDate.textContent = settingsTranslation[lang][6];
+  setGreeting.textContent = settingsTranslation[lang][7];
+  setquote.textContent = settingsTranslation[lang][8];
+  setWeather.textContent = settingsTranslation[lang][9];
+  setAudio.textContent = settingsTranslation[lang][10];
+  setYes.forEach((el) => (el.textContent = settingsTranslation[lang][11]));
+  setNo.forEach((el) => (el.textContent = settingsTranslation[lang][12]));
+  setBackgrnd.textContent = settingsTranslation[lang][13];
+}
+
 function translatePage() {
   if (lang === "ru") {
-    lang = "en";
-  } else if (lang === "en") {
-    lang = "ru";
+    rusBtn.value = "yes";
+    engBtn.value = "no";
+    rusBtn.checked = true;
+    engBtn.checked = false;
+  } else {
+    rusBtn.value = "no";
+    engBtn.value = "yes";
+    rusBtn.checked = false;
+    engBtn.checked = true;
   }
   showGreeting();
   getWeather(lang);
   getQuotes();
   translateTrackName();
   translatePlaylist();
+  translateSettings();
 }
 
-// time.addEventListener("click", translatePage);
+function translatePageByBtn() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-en") {
+      rusBtn.value = "no";
+      lang = "en";
+      state.language = "en";
+    } else {
+      engBtn.value = "no";
+      lang = "ru";
+      state.language = "ru";
+    }
+    translatePage();
+  }
+}
+
+engBtn.addEventListener("click", translatePageByBtn);
+rusBtn.addEventListener("click", translatePageByBtn);
 
 // translation function end //
+
+// settings block start //
+
+function openSettings() {
+  if (!settingsMenu.classList.contains("settings-visible")) {
+    settingsMenu.classList.add("settings-visible");
+    settingsBtn.classList.add("settings-btn-off");
+  }
+}
+
+function closeSettings() {
+  this.addEventListener("click", (event) => {
+    const isClosest = event.target.closest(".settings-menu");
+    const isBtn = event.target.closest(".settings-btn");
+
+    if (
+      !isClosest &&
+      !isBtn &&
+      settingsMenu.classList.contains("settings-visible")
+    ) {
+      settingsMenu.classList.remove("settings-visible");
+      settingsBtn.classList.remove("settings-btn-off");
+    }
+  });
+}
+
+settingsBtn.addEventListener("click", openSettings);
+document.addEventListener("click", closeSettings);
+
+function hideTimeOnLoad() {
+  if (!state.blocks.includes("time")) {
+    timeBtnYes.value = "no";
+    timeBtnNo.value = "yes";
+    timeBtnYes.checked = false;
+    timeBtnNo.checked = true;
+    time.classList.add("time-hidden");
+  }
+};
+
+function hideTime() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-time-n") {
+      timeBtnYes.value = "no";
+    } else {
+      timeBtnNo.value = "no";
+    }
+    if (!time.classList.contains("time-hidden")) {
+      time.classList.add("time-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "time");
+    } else {
+      time.classList.remove("time-hidden");
+      state.blocks.push("time");
+    }
+  }
+}
+
+timeBtnYes.addEventListener("click", hideTime);
+timeBtnNo.addEventListener("click", hideTime);
+
+function hideDateOnLoad() {
+  if (!state.blocks.includes("date")) {
+    dateBtnYes.value = "no";
+    dateBtnNo.value = "yes";
+    dateBtnYes.checked = false;
+    dateBtnNo.checked = true;
+    date.classList.add("date-hidden");
+  }
+};
+
+function hideDate() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-date-n") {
+      dateBtnYes.value = "no";
+    } else {
+      dateBtnNo.value = "no";
+    }
+    if (!date.classList.contains("date-hidden")) {
+      date.classList.add("date-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "date");
+    } else {
+      date.classList.remove("date-hidden");
+      state.blocks.push("date");
+    }
+  }
+}
+
+dateBtnYes.addEventListener("click", hideDate);
+dateBtnNo.addEventListener("click", hideDate);
+
+function hideGreetingOnLoad() {
+  if (!state.blocks.includes("greeting")) {
+    greetingBtnYes.value = "no";
+    greetingBtnNo.value = "yes";
+    greetingBtnYes.checked = false;
+    greetingBtnNo.checked = true;
+    greetingBlock.classList.add("greeting-hidden");
+  }
+};
+
+function hideGreeting() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-greeting-n") {
+      greetingBtnYes.value = "no";
+    } else {
+      greetingBtnNo.value = "no";
+    }
+    if (!greetingBlock.classList.contains("greeting-hidden")) {
+      greetingBlock.classList.add("greeting-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "greeting");
+    } else {
+      greetingBlock.classList.remove("greeting-hidden");
+      state.blocks.push("greeting");
+    }
+  }
+}
+
+greetingBtnYes.addEventListener("click", hideGreeting);
+greetingBtnNo.addEventListener("click", hideGreeting);
+
+function hideQuoteOnLoad() {
+  if (!state.blocks.includes("quote")) {
+    quoteBtnYes.value = "no";
+    quoteBtnNo.value = "yes";
+    quoteBtnYes.checked = false;
+    quoteBtnNo.checked = true;
+    quoteBlock.classList.add("quote-hidden");
+  }
+};
+
+function hideQuote() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-quote-n") {
+      quoteBtnYes.value = "no";
+    } else {
+      quoteBtnNo.value = "no";
+    }
+    if (!quoteBlock.classList.contains("quote-hidden")) {
+      quoteBlock.classList.add("quote-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "quote");
+    } else {
+      quoteBlock.classList.remove("quote-hidden");
+      state.blocks.push("quote");
+    }
+  }
+}
+
+quoteBtnYes.addEventListener("click", hideQuote);
+quoteBtnNo.addEventListener("click", hideQuote);
+
+function hideWeatherOnLoad() {
+  if (!state.blocks.includes("weather")) {
+    weatherBtnYes.value = "no";
+    weatherBtnNo.value = "yes";
+    weatherBtnYes.checked = false;
+    weatherBtnNo.checked = true;
+    weatherBlock.classList.add("weather-hidden");
+  }
+};
+
+function hideWeather() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-weather-n") {
+      weatherBtnYes.value = "no";
+    } else {
+      weatherBtnNo.value = "no";
+    }
+    if (!weatherBlock.classList.contains("weather-hidden")) {
+      weatherBlock.classList.add("weather-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "weather");
+    } else {
+      weatherBlock.classList.remove("weather-hidden");
+      state.blocks.push("weather");
+    }
+  }
+}
+
+weatherBtnYes.addEventListener("click", hideWeather);
+weatherBtnNo.addEventListener("click", hideWeather);
+
+function hideAudioOnLoad() {
+  if (!state.blocks.includes("audio")) {
+    audioBtnYes.value = "no";
+    audioBtnNo.value = "yes";
+    audioBtnYes.checked = false;
+    audioBtnNo.checked = true;
+    playerBlock.classList.add("player-hidden");
+  }
+};
+
+function hideAudio() {
+  if (this.value === "no") {
+    this.value = "yes";
+    if (this.id === "radio-audio-n") {
+      audioBtnYes.value = "no";
+    } else {
+      audioBtnNo.value = "no";
+    }
+    if (!playerBlock.classList.contains("player-hidden")) {
+      playerBlock.classList.add("player-hidden");
+      state.blocks = state.blocks.filter((el) => el !== "audio");
+    } else {
+      playerBlock.classList.remove("player-hidden");
+      state.blocks.push("audio");
+    }
+  }
+}
+
+audioBtnYes.addEventListener("click", hideAudio);
+audioBtnNo.addEventListener("click", hideAudio);
+
+// settings block end //
