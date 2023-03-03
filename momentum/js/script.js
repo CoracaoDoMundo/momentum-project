@@ -5,7 +5,6 @@ const time = document.querySelector(".time"),
   greeting = document.querySelector(".greeting"),
   greetingBlock = document.querySelector(".greeting-container"),
   userName = document.querySelector(".name"),
-  hours = new Date().getHours(),
   body = document.querySelector(".body"),
   sliderLeft = document.querySelector(".slide-prev"),
   sliderRight = document.querySelector(".slide-next"),
@@ -49,6 +48,11 @@ const time = document.querySelector(".time"),
   weatherBtnNo = document.getElementById("radio-weather-n"),
   audioBtnYes = document.getElementById("radio-audio-y"),
   audioBtnNo = document.getElementById("radio-audio-n"),
+  ghBtn = document.getElementById("radio-github"),
+  flckrBtn = document.getElementById("radio-flickr"),
+  unsplBtn = document.getElementById("radio-unsplash"),
+  tagsField = document.querySelector(".tags-selection"),
+  tagsForm = document.querySelector(".tags-form"),
   setHeader = document.querySelector(".settings-menu__header"),
   setLang = document.querySelector(".settings-menu__lang"),
   setEngBtn = document.querySelector(".lang-eng-btn"),
@@ -106,9 +110,8 @@ const time = document.querySelector(".time"),
     ],
   };
 
-city.value = "Minsk";
-
 let randomNum,
+  hours,
   isPlay = false,
   trackNum = 0,
   lang = greeting.getAttribute("lang"),
@@ -124,6 +127,7 @@ function setLocalStorage() {
   localStorage.setItem("name", userName.value);
   localStorage.setItem("city", city.value);
   localStorage.setItem("state", JSON.stringify(state));
+  localStorage.setItem("tags", tagsField.value);
 }
 window.addEventListener("beforeunload", setLocalStorage);
 
@@ -136,6 +140,10 @@ function getLocalStorage() {
     city.value = localStorage.getItem("city");
   }
 
+  if (localStorage.getItem("tags")) {
+    tagsField.value = localStorage.getItem("tags");
+  }
+
   if (localStorage.getItem("state")) {
     state = JSON.parse(localStorage.getItem("state"));
     lang = state.language;
@@ -146,15 +154,10 @@ function getLocalStorage() {
     hideWeatherOnLoad();
     hideQuoteOnLoad();
     hideAudioOnLoad();
-    console.log(state);
   }
-}
 
-// function appearanceOfBlocks(element) {
-//   if (!state.blocks.includes(element)) {
-//     `${element}` + BtnNo.value = "no";
-//   }
-// }
+  setBackground();
+}
 
 window.addEventListener("load", getLocalStorage);
 window.addEventListener("load", getWeather);
@@ -168,10 +171,22 @@ function showTime() {
   const currentTime = date.toLocaleTimeString("en-us", { hourCycle: "h23" });
 
   time.textContent = currentTime;
-  setTimeout(showTime, 1000);
-  showDate();
+
+  if (
+    currentTime === "00:00:00" ||
+    currentTime === "06:00:00" ||
+    currentTime === "12:00:00" ||
+    currentTime === "18:00:00"
+  ) {
+    setBackground();
+  }
+
   showGreeting();
+  showDate();
+
+  setTimeout(showTime, 1000);
 }
+
 showTime();
 
 function showDate() {
@@ -203,6 +218,7 @@ function showDate() {
 
 function getTimeOfDay(lang) {
   let timeOfDay;
+  hours = new Date().getHours();
 
   switch (lang) {
     case "en":
@@ -264,10 +280,12 @@ function getRandomNum(limit) {
   return randomNum;
 }
 
-function setBg() {
+function setBgGh() {
   if (randomNum === undefined) {
     getRandomNum(20);
   }
+
+  tagsField.classList.add("tags-hide");
 
   let bgNum = randomNum.toString().padStart(2, "0");
   let timeOfDay = getTimeOfDay("en");
@@ -279,34 +297,134 @@ function setBg() {
   };
 }
 
-setBg();
+function setBackground() {
+  if (state.photoSource === "github") {
+    setBgGh();
+    ghBtn.value = "yes";
+    ghBtn.checked = true;
+    flckrBtn.value = "no";
+    flckrBtn.checked = false;
+    unsplBtn.value = "no";
+    unsplBtn.checked = false;
+  } else if (state.photoSource === "unsplash") {
+    getLinkToImageUnsplash();
+    ghBtn.value = "no";
+    ghBtn.checked = false;
+    flckrBtn.value = "no";
+    flckrBtn.checked = false;
+    unsplBtn.value = "yes";
+    unsplBtn.checked = true;
+  } else if (state.photoSource === "flickr") {
+    getLinkToImageFlickr();
+    ghBtn.value = "no";
+    ghBtn.checked = false;
+    flckrBtn.value = "yes";
+    flckrBtn.checked = true;
+    unsplBtn.value = "no";
+    unsplBtn.checked = false;
+  }
+}
 
 // background end //
 
 // background slider start //
 
 function getSlideNext() {
-  if (randomNum >= 20) {
-    randomNum = 1;
-  } else {
-    randomNum++;
+  if (state.photoSource === "github") {
+    if (randomNum >= 20) {
+      randomNum = 1;
+    } else {
+      randomNum++;
+    }
+    setBgGh();
+  } else if (state.photoSource === "unsplash") {
+    getLinkToImageUnsplash();
+  } else if (state.photoSource === "flickr") {
+    getLinkToImageFlickr();
   }
-  setBg();
 }
 
 function getSlidePrev() {
-  if (randomNum <= 1) {
-    randomNum = 20;
-  } else {
-    randomNum--;
+  if (state.photoSource === "github") {
+    if (randomNum <= 1) {
+      randomNum = 20;
+    } else {
+      randomNum--;
+    }
+    setBgGh();
+  } else if (state.photoSource === "unsplash") {
+    getLinkToImageUnsplash();
+  } else if (state.photoSource === "flickr") {
+    getLinkToImageFlickr();
   }
-  setBg();
 }
 
 sliderRight.addEventListener("click", getSlideNext);
 sliderLeft.addEventListener("click", getSlidePrev);
 
 // background slider end //
+
+// background API images start //
+
+async function getLinkToImageUnsplash() {
+  let timeOfDay = getTimeOfDay("en");
+  let tags = tagsField.value.replace(", ", ",").replace(" ", ",");
+  let changedPartOfLink;
+  if (!tags) {
+    changedPartOfLink = timeOfDay;
+  } else {
+    changedPartOfLink = timeOfDay + "," + tags;
+  }
+
+  tagsField.classList.remove("tags-hide");
+
+  const url = `https://api.unsplash.com/photos/random?query=${changedPartOfLink}&client_id=X83VSIMQL05m32hPadQ72GrSSHr50rAd-M7VOi2upls`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  const img = new Image();
+  img.src = data.urls.regular;
+
+  img.onload = () => {
+    body.style.backgroundImage = `url(${img.src})`;
+  };
+}
+
+async function getLinkToImageFlickr() {
+  let timeOfDay = getTimeOfDay("en");
+  let tags = tagsField.value.replace(", ", ",").replace(" ", ",");
+  let changedPartOfLink;
+  if (!tags) {
+    changedPartOfLink = timeOfDay;
+  } else {
+    changedPartOfLink = timeOfDay + "," + tags;
+  }
+
+  tagsField.classList.remove("tags-hide");
+
+  const url = `https://www.flickr.com/services/rest/?method=flickr.photos.search&api_key=281b6699d9d74117cbb7032b914029ce&tags=${changedPartOfLink}&extras=url_l&format=json&nojsoncallback=1`;
+  const res = await fetch(url);
+  const data = await res.json();
+
+  let randomLink =
+    data.photos.photo[Math.floor(Math.random() * data.photos.photo.length)];
+
+  const img = new Image();
+  img.src = randomLink.url_l;
+  img.onload = () => {
+    body.style.backgroundImage = `url(${img.src})`;
+  };
+}
+
+tagsField.addEventListener("change", () => {
+  if (state.photoSource === "unsplash") {
+    getLinkToImageUnsplash();
+  } else if (state.photoSource === "flickr") {
+    getLinkToImageFlickr();
+  }
+});
+
+// background API images end //
 
 //weather widget start //
 
@@ -538,8 +656,6 @@ function controlVolume() {
 
 volumeBar.addEventListener("input", controlVolume);
 
-// Функция контроля маленькими кнопками рядом с треком:
-
 function controlBySmBtns() {
   playPauseSmBtns.forEach((el) => {
     el.addEventListener("click", () => {
@@ -693,11 +809,13 @@ function translatePage() {
     engBtn.value = "no";
     rusBtn.checked = true;
     engBtn.checked = false;
+    city.value = "Минск";
   } else {
     rusBtn.value = "no";
     engBtn.value = "yes";
     rusBtn.checked = false;
     engBtn.checked = true;
+    city.value = "Minsk";
   }
   showGreeting();
   getWeather(lang);
@@ -707,10 +825,11 @@ function translatePage() {
   translateSettings();
 }
 
-function translatePageByBtn() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-en") {
+function translatePageByBtn(event) {
+  
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-en") {
       rusBtn.value = "no";
       lang = "en";
       state.language = "en";
@@ -764,12 +883,12 @@ function hideTimeOnLoad() {
     timeBtnNo.checked = true;
     time.classList.add("time-hidden");
   }
-};
+}
 
-function hideTime() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-time-n") {
+function hideTime(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-time-n") {
       timeBtnYes.value = "no";
     } else {
       timeBtnNo.value = "no";
@@ -795,12 +914,12 @@ function hideDateOnLoad() {
     dateBtnNo.checked = true;
     date.classList.add("date-hidden");
   }
-};
+}
 
-function hideDate() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-date-n") {
+function hideDate(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-date-n") {
       dateBtnYes.value = "no";
     } else {
       dateBtnNo.value = "no";
@@ -826,12 +945,12 @@ function hideGreetingOnLoad() {
     greetingBtnNo.checked = true;
     greetingBlock.classList.add("greeting-hidden");
   }
-};
+}
 
-function hideGreeting() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-greeting-n") {
+function hideGreeting(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-greeting-n") {
       greetingBtnYes.value = "no";
     } else {
       greetingBtnNo.value = "no";
@@ -857,12 +976,12 @@ function hideQuoteOnLoad() {
     quoteBtnNo.checked = true;
     quoteBlock.classList.add("quote-hidden");
   }
-};
+}
 
-function hideQuote() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-quote-n") {
+function hideQuote(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-quote-n") {
       quoteBtnYes.value = "no";
     } else {
       quoteBtnNo.value = "no";
@@ -888,12 +1007,12 @@ function hideWeatherOnLoad() {
     weatherBtnNo.checked = true;
     weatherBlock.classList.add("weather-hidden");
   }
-};
+}
 
-function hideWeather() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-weather-n") {
+function hideWeather(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-weather-n") {
       weatherBtnYes.value = "no";
     } else {
       weatherBtnNo.value = "no";
@@ -919,12 +1038,12 @@ function hideAudioOnLoad() {
     audioBtnNo.checked = true;
     playerBlock.classList.add("player-hidden");
   }
-};
+}
 
-function hideAudio() {
-  if (this.value === "no") {
-    this.value = "yes";
-    if (this.id === "radio-audio-n") {
+function hideAudio(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-audio-n") {
       audioBtnYes.value = "no";
     } else {
       audioBtnNo.value = "no";
@@ -941,5 +1060,35 @@ function hideAudio() {
 
 audioBtnYes.addEventListener("click", hideAudio);
 audioBtnNo.addEventListener("click", hideAudio);
+
+function switchBgSource(event) {
+  if (event.target.value === "no") {
+    event.target.value = "yes";
+    if (event.target.id === "radio-github") {
+      flckrBtn.value = "no";
+      unsplBtn.value = "no";
+      state.photoSource = "github";
+      tagsField.disabled = true;
+      tagsForm.reset();
+      setBgGh();
+    } else if (event.target.id === "radio-flickr") {
+      ghBtn.value = "no";
+      unsplBtn.value = "no";
+      state.photoSource = "flickr";
+      tagsField.disabled = false;
+      getLinkToImageFlickr();
+    } else {
+      ghBtn.value = "no";
+      flckrBtn.value = "no";
+      state.photoSource = "unsplash";
+      tagsField.disabled = false;
+      getLinkToImageUnsplash();
+    }
+  }
+}
+
+ghBtn.addEventListener("click", switchBgSource);
+flckrBtn.addEventListener("click", switchBgSource);
+unsplBtn.addEventListener("click", switchBgSource);
 
 // settings block end //
