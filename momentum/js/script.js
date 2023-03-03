@@ -465,7 +465,7 @@ city.addEventListener("keypress", function (e) {
 // quotes widget start //
 
 async function getQuotes() {
-  const quotes = "js/data.json";
+  const quotes = "momentum/js/data.json";
   const res = await fetch(quotes);
   const data = await res.json();
   let randomQuoteNum = getRandomNum(data.length - 1);
