@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="assets/favicon.ico" rel="shortcut icon" />
+    <link rel="stylesheet" href="css/owfont-regular.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Momentum</title>
+  </head>
+  <body class="body">
+    <header class="header">
+      <div class="player">
+        <div class="player-controls">
+          <button class="play-prev player-icon"></button>
+          <button class="play player-icon"></button>
+          <button class="play-next player-icon"></button>
+          <audio src="" class="audio"></audio>
+          <div class="player-advanced-controls">
+            <div class="track-name-block">
+              <p class="current-track-name"></p>
+              <div class="durationTime"></div>
+            </div>
+            <input
+              type="range"
+              id="progress-bar"
+              class="audio-progress-bar"
+              min="0"
+              max=""
+              value="0"
+            />
+            <div class="sound-block">
+              <div class="currentTime"></div>
+              <div class="sound-level-block">
+                <div class="sound-btn"></div>
+                <input
+                  type="range"
+                  class="volume-level-bar"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <ol class="play-list"></ol>
+      </div>
+      <div class="weather">
+        <input type="text" class="city" placeholder="[Enter city]" />
+        <i class="weather-icon owf"></i>
+        <div class="weather-error"></div>
+        <div class="description-container">
+          <span class="temperature"></span>
+          <span class="weather-description"></span>
+          <span class="wind-speed"></span>
+          <span class="humidity"></span>
+        </div>
+        <div class="wind"></div>
+        <div class="humidity"></div>
+      </div>
+    </header>
+    <main class="main">
+      <div class="slider-icons">
+        <button class="slide-prev slider-icon"></button>
+        <button class="slide-next slider-icon"></button>
+      </div>
+      <time class="time"></time>
+      <date class="date"></date>
+      <div class="greeting-container">
+        <span class="greeting" lang="en"></span>
+        <input class="name" type="text" placeholder="[Enter name]" />
+      </div>
+    </main>
+    <footer class="footer">
+      <button class="settings-btn"></button>
+      <div class="settings-menu">
+        <h3 class="settings-menu__header">Settings</h3>
+        <form class="form">
+          <h6 class="settings-menu__lang">Language</h6>
+          <div class="switch-field">
+            <input
+              type="radio"
+              id="radio-en"
+              name="switch-one"
+              value="yes"
+              checked
+            />
+            <label for="radio-en" class="lang-eng-btn">En</label>
+            <input type="radio" id="radio-ru" name="switch-one" value="no"/>
+            <label for="radio-ru" class="lang-rus-btn">Ru</label>
+          </div>
+        </form>
+        <h5 class="settings-menu__sections">Sections</h5>
+        <form class="form form-sections">
+          <h6 class="settings-menu__section-name set-time">Time</h6>
+          <div class="switch-field">
+            <input
+              type="radio"
+              id="radio-time-y"
+              name="switch-two"
+              value="yes"
+              checked
+            />
+            <label for="radio-time-y" class="yes">Yes</label>
+            <input type="radio" id="radio-time-n" name="switch-two" value="no"/>
+            <label for="radio-time-n" class="no">No</label>
+          </div>
+          </form>
+          <form class="form form-sections">
+            <h6 class="settings-menu__section-name set-date">Date</h6>
+            <div class="switch-field">
+              <input
+                type="radio"
+                id="radio-date-y"
+                name="switch-three"
+                value="yes"
+                checked
+              />
+              <label for="radio-date-y" class="yes">Yes</label>
+              <input type="radio" id="radio-date-n" name="switch-three" value="no"/>
+              <label for="radio-date-n" class="no">No</label>
+            </div>
+          </form>
+          <form class="form form-sections">
+            <h6 class="settings-menu__section-name set-greet">Greeting</h6>
+            <div class="switch-field">
+              <input
+                type="radio"
+                id="radio-greeting-y"
+                name="switch-four"
+                value="yes"
+                checked
+              />
+              <label for="radio-greeting-y" class="yes">Yes</label>
+              <input type="radio" id="radio-greeting-n" name="switch-four" value="no"/>
+              <label for="radio-greeting-n" class="no">No</label>
+            </div>
+          </form>
+          <form class="form form-sections">
+            <h6 class="settings-menu__section-name set-quote">Quote</h6>
+            <div class="switch-field">
+              <input
+                type="radio"
+                id="radio-quote-y"
+                name="switch-five"
+                value="yes"
+                checked
+              />
+              <label for="radio-quote-y" class="yes">Yes</label>
+              <input type="radio" id="radio-quote-n" name="switch-five" value="no"/>
+              <label for="radio-quote-n" class="no">No</label>
+            </div>
+          </form>
+          <form class="form form-sections">
+          <h6 class="settings-menu__section-name set-weather">Weather</h6>
+          <div class="switch-field">
+            <input
+              type="radio"
+              id="radio-weather-y"
+              name="switch-six"
+              value="yes"
+              checked
+            />
+            <label for="radio-weather-y" class="yes">Yes</label>
+            <input type="radio" id="radio-weather-n" name="switch-six" value="no"/>
+            <label for="radio-weather-n" class="no">No</label>
+          </div>
+          </form>
+          <form class="form form-sections">
+            <h6 class="settings-menu__section-name set-audio">Audio</h6>
+            <div class="switch-field">
+              <input
+                type="radio"
+                id="radio-audio-y"
+                name="switch-seven"
+                value="yes"
+                checked
+              />
+              <label for="radio-audio-y" class="yes">Yes</label>
+              <input type="radio" id="radio-audio-n" name="switch-seven" value="no"/>
+              <label for="radio-audio-n" class="no">No</label>
+            </div>
+        </form>
+        <h5 class="settings-menu__background">Background</h5>
+        <form class="form form-background">
+          <div class="switch-field">
+            <input
+              type="radio"
+              id="radio-github"
+              name="switch-eight"
+              value="yes"
+              checked
+            />
+            <label for="radio-github" class="github" id="background-btn">GitHub</label>
+            <input type="radio" id="radio-flickr" name="switch-eight" value="no"/>
+            <label for="radio-flickr" class="flickr" id="background-btn">Flickr</label>
+            <input type="radio" id="radio-unsplash" name="switch-eight" value="no"/>
+            <label for="radio-unsplash" class="unsplash" id="background-btn">Unsplash</label>
+          </div>
+          </form>
+          <form action="" class="tags-form">
+            <input type="text" class="tags-selection" placeholder="Image themes/tags..." maxlength="70"/>
+          </form>
+      </div>
+      <div class="quote-block">
+      <button class="change-quote"></button>
+        <div class="quote"></div>
+        <div class="author"></div>
+      </div>
+    </footer>
+    <script type="module" src="js/script.js"></script>
+  </body>
+</html>
